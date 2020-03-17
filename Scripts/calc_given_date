@@ -1,0 +1,53 @@
+#! /usr/bin/bash
+
+if [ $# -ne 1 ]; then
+echo "usage: do_me <date>"
+exit 2
+fi
+
+date=$1
+
+bestid_delta=1
+
+echo "Calculate urban population mean/median temp observed on date $date"
+echo ""
+
+if [ ! -f best_station.txt ]; then
+echo "did not find best_station.txt, run pre-processing"
+./Scripts/pre_process_all_dates
+else
+echo "pre-processing has already run, best_station.txt exists"
+cat all_sizes.txt
+fi
+
+echo ""
+echo "extract climate data available on date  O(S*D)"
+grep $date climate.csv > climate_observed.csv
+
+echo "extract station lat/lng and temp available on date  O(S)"
+awk -F ',' -f Scripts/lat_lng_temp_station.awk  climate_observed.csv > lat_lng_id_zero_temp_station.txt
+
+
+# check for each station having unique lat/lng
+
+# station.txt is sorted for unid -d
+awk '{ print $3 }' lat_lng_id_zero_temp_station.txt | sort > station.txt
+
+cat station.txt | uniq -d > station_dup.txt
+if [ -s station_dup.txt ]; then
+echo "found ambiguous lat/lng for some stations, see station_dup.txt"
+fi
+
+echo ""
+
+./Scripts/delta_process
+cp lat_lng_bestid_pop_zero_city_incr.txt lat_lng_bestid_pop_zero_city.txt
+
+
+echo ""
+echo "for each city, get temp from closest station  O(S+C)"
+awk -f Scripts/get_temp_from_bestid.awk lat_lng_id_zero_temp_station.txt lat_lng_bestid_pop_zero_city.txt > lat_lng_bestid_pop_temp_city.txt
+
+# calculate mean and median
+./Scripts/calc_mean_median
+

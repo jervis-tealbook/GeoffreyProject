@@ -1,0 +1,43 @@
+#! /usr/bin/bash
+
+if [ $# -ne 0 ]; then
+echo "usage: delta_process"
+exit 2
+fi
+
+echo "incrementally find best station (per-city) available on date"
+echo "start with pre-processed closest station regardless of date"
+
+echo "find stations not available on given date  O(S*log(S))"
+# best_station.txt and station.txt must be sorted for comm
+comm -23 best_station.txt station.txt > missing_station.txt
+
+
+echo "find cities with closest stations not available on given date  O(C)"
+
+#from lat_lng_bestid_pop_zero_city_any.txt find cities for missing
+#will need to recalc these cities
+
+# find cities to keep bestid
+awk -f Scripts/remove_missing_stations.awk missing_station.txt lat_lng_bestid_pop_zero_city_any.txt > lat_lng_bestid_pop_zero_city_keep.txt
+
+# find cities to recalc bestid
+awk -f Scripts/extract_missing_bestid.awk missing_station.txt lat_lng_bestid_pop_zero_city_any.txt > lat_lng_zero_pop_zero_city_redo.txt
+
+numredo=`cat lat_lng_zero_pop_zero_city_redo.txt | wc -l`
+echo "num cities with unavailable closest  U = $numredo,  (U < C)"
+
+
+echo "recalculate closest station available on date for these cities  O(S*U)"
+# note lat_lng_id_zero_temp_station.txt
+# this is available stations on given date
+
+awk -f Scripts/filter_redo_city_dist.awk lat_lng_zero_pop_zero_city_redo.txt all_city_all_station_dist.txt > redo_city_all_station_dist.txt
+
+awk -f Scripts/remove_missing_stations.awk missing_station.txt redo_city_all_station_dist.txt > redo_city_avail_station_dist.txt
+
+awk -f Scripts/find_closest_avail.awk redo_city_avail_station_dist.txt > lat_lng_bestid_pop_zero_city_redo.txt
+
+
+# combine keep and redo
+cat lat_lng_bestid_pop_zero_city_keep.txt lat_lng_bestid_pop_zero_city_redo.txt > lat_lng_bestid_pop_zero_city_incr.txt

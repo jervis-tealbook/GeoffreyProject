@@ -1,0 +1,12 @@
+#! /usr/bin/bash
+
+if [ $# -ne 0 ]; then
+echo "usage: run_ref"
+exit 2
+fi
+
+# force pre_process
+rm best_station.txt
+
+./Scripts/calc_given_date 2020-01-01 > log_ref.txt
+

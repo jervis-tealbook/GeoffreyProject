@@ -1,0 +1,24 @@
+#! /usr/bin/bash
+
+if [ $# -ne 0 ]; then
+echo "usage: calc_mean_median"
+exit 2
+fi
+
+echo "calculate mean and median temp over entire urban population  O(C*log(C))"
+
+# lat_lng_bestid_pop_temp_city_bytemp.txt is sorted for median.awk
+sort -k 5n lat_lng_bestid_pop_temp_city.txt > lat_lng_bestid_pop_temp_city_bytemp.txt
+
+awk -f Scripts/mean.awk lat_lng_bestid_pop_temp_city_bytemp.txt > mean.txt
+
+cat mean.txt
+
+poptotal=`head -1 mean.txt | awk '{print $2}'`
+
+#echo "poptotal $poptotal"
+
+awk -v poptotal=$poptotal -f Scripts/median.awk lat_lng_bestid_pop_temp_city_bytemp.txt > median.txt
+
+cat median.txt
+

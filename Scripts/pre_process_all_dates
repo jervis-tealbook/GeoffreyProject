@@ -1,0 +1,45 @@
+#! /usr/bin/bash
+
+if [ $# -ne 0 ]; then
+echo "usage: pre_process"
+exit 2
+fi
+
+echo "Pre-process climate/city data independent of date"
+echo ""
+
+./Scripts/get_sizes > all_sizes.txt
+cat all_sizes.txt
+
+echo ""
+
+# this does not depend on date, can be done as pre-processing
+echo "extract city lat/lng  O(C)"
+awk -F ',' -f Scripts/lat_lng_pop_city.awk cities.csv | tail +2 > lat_lng_zero_pop_zero_city.txt
+
+
+echo "extract station lat/lng   O(S*D)"
+awk -F ',' -f Scripts/lat_lng_id_station.awk climate.csv | tail +2 | awk -f Scripts/uniqlines.awk > lat_lng_id_zero_zero_station.txt
+
+# all_stations.txt is sorted for uniq -d
+awk '{ print $3 }' lat_lng_id_zero_zero_station.txt | sort  > all_station.txt
+
+
+# test for dup detection
+
+cat all_station.txt | uniq -d > all_station_dup.txt
+if [ -s all_station_dup.txt ]; then
+echo "found ambiguous lat/lng for some stations, see all_station_dup.txt"
+fi
+
+echo ""
+echo "find closest station for each city, regardless of date  O(S*C)"
+
+cat lat_lng_zero_pop_zero_city.txt | xargs -I %  sh -c 'cat lat_lng_id_zero_zero_station.txt | (echo % && cat) | awk -f Scripts/calc_dist.awk' > all_city_all_station_dist.txt
+
+grep CITY all_city_all_station_dist.txt > lat_lng_bestid_pop_zero_city_any.txt
+
+# best_station.txt is sorted for later comm comparision
+awk '{ print $3 }' lat_lng_bestid_pop_zero_city_any.txt | awk -f Scripts/uniqlines.awk | sort > best_station.txt
+
+

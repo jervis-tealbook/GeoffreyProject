@@ -1,0 +1,28 @@
+#! /usr/bin/bash
+
+if [ $# -ne 0 ]; then
+echo "usage: get_sizes"
+exit 2
+fi
+
+
+#echo -n "num stations "
+
+numstations=`awk -F ',' -f Scripts/get_stations.awk climate.csv | tail +2 | sort -u | wc -l`
+echo "num stations  S = $numstations"
+
+#echo -n "num dates "
+
+numdates=`awk -F ',' -f Scripts/get_dates.awk climate.csv | tail +2 | sort -u | wc -l`
+echo "num dates  D = $numdates"
+
+maxrows=$(($numstations * $numdates))
+
+echo "max station/date rows  S * D = $maxrows"
+echo -n "num climate.csv rows  "
+tail +2 climate.csv | wc -l
+
+echo -n "num cities  C = "
+tail +2 cities.csv | wc -l
+
+

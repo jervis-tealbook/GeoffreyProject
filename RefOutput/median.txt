@@ -1,0 +1,2 @@
+pophalf = 1.15668e+07
+poprun 14486068 median -0.1

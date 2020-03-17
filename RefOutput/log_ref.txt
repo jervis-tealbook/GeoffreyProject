@@ -1,0 +1,32 @@
+Calculate urban population mean/median temp observed on date 2020-01-01
+
+did not find best_station.txt, run pre-processing
+Pre-process climate/city data independent of date
+
+num stations  S = 958
+num dates  D = 47
+max station/date rows  S * D = 45026
+num climate.csv rows  41513
+num cities  C = 247
+
+extract city lat/lng  O(C)
+extract station lat/lng   O(S*D)
+
+find closest station for each city, regardless of date  O(S*C)
+
+extract climate data available on date  O(S*D)
+extract station lat/lng and temp available on date  O(S)
+
+incrementally find best station (per-city) available on date
+start with pre-processed closest station regardless of date
+find stations not available on given date  O(S*log(S))
+find cities with closest stations not available on given date  O(C)
+num cities with unavailable closest  U = 18,  (U < C)
+recalculate closest station available on date for these cities  O(S*U)
+
+for each city, get temp from closest station  O(S+C)
+calculate mean and median temp over entire urban population  O(C*log(C))
+poptotal 23133597
+mean 0.367022
+pophalf = 1.15668e+07
+poprun 14486068 median -0.1

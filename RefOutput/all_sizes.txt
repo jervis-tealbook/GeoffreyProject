@@ -1,0 +1,5 @@
+num stations  S = 958
+num dates  D = 47
+max station/date rows  S * D = 45026
+num climate.csv rows  41513
+num cities  C = 247
